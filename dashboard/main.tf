@@ -740,22 +740,27 @@ resource "newrelic_one_dashboard" "shreya-dash" {
         }
     }
 
-    # variable {
-    #     name            = "transaction_name"
-    #     default_values  = ["*"] # ["*"] selects all values as default
-    #     is_multi_selection = true
-    #     item {
-    #         title = "All Transactions"
-    #         value = "*"
-    #     }
-    #     nrql_query {
-    #         query = "SELECT uniques(city) FROM PageAction WHERE appName = 'relicstaurants'"
-    #     }
-    #     replacement_strategy = "string" # default, identifier, number, or string
-    #     title              = "Transaction Name"
-    #     type               = "nrql"
-    #     options {
-    #         ignore_time_range = false
-    #     }
-    # }
+    dynamic "variable" {
+        for_each = try(var.dashboard_details.variable, {})
+        content {
+            name            = variable.value.name
+            default_values  = variable.value.default_values
+            is_multi_selection = variable.value.is_multi_selection
+            item {
+                title = variable.value.item.title
+                value = variable.value.item.value
+            }
+            nrql_query {
+                query = variable.value.nrql_query.query
+            }
+
+            replacement_strategy = variable.value.replacement_strategy
+            title              = variable.value.title
+            type               = variable.value.type
+
+            options {
+                ignore_time_range = variable.value.options.ignore_time_range
+            }
+        }
+    }
 }
